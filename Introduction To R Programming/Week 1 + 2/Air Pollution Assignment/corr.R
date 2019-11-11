@@ -10,39 +10,27 @@ corr <- function(directory, threshold = 0) {
     #
     # Return a numeric vector of correlations.
     # NOTE: DO NOT ROUND THE RESULT
-    
+
     ## Get list of CSV files from given directory.
     filesList = list.files(path = directory, pattern = "*.csv", full.names = T)
-    
+
     ## Import the CSV data into a data frame object.
     dat_csv = ldply(filesList, read_csv)
-    
+
     # Get number of complete observations for each sensor ID in a data frame
     completeVec = complete(directory)
-    
-    # Iterate over all the sensorIDs and find which ones fit the threshold
-    idsFittingThreshold = vector()
-    for(sensorId in 1:nrow(completeVec)) {
-        tempFilteredFrame = subset.data.frame(dat_csv, ID %in% sensorId)
-        ratio = nrow(tempFilteredFrame)
-        if(ratio >= threshold) {
-            # This sensor has enough complete observations to warrant a correlation calculation
-            idsFittingThreshold = c(idsFittingThreshold, sensorId)
-        }
-    }
 
-    # Filter the original data frame to only include sensorIDs that fit threshold
-    filteredById = subset.data.frame(dat_csv, ID %in% idsFittingThreshold)
+    # Subset complete vector to only those sensors which fit threshold value
+    fitThreshold = completeVec[completeVec$nobs > threshold,]
 
     # Initialize return vector
-    returnVector = vector()
-    # Iterate over each ID that fits threshold, figure out correlation
-    for(sensorId in idsFittingThreshold) {
-        tempFilteredFrame = subset.data.frame(dat_csv, ID %in% sensorId)
-        completeFrame = tempFilteredFrame[complete.cases(tempFilteredFrame),]
-        x = completeFrame$sulfate
-        y = completeFrame$nitrate
-        returnVector = c(returnVector, cor(x = x, y = y))
+    returnVector = numeric()
+
+    # Iterate over all sensor IDs that fit the threshold values
+    for(sensorId in fitThreshold$id) {
+        filteredById = dat_csv[dat_csv$ID == sensorId,]
+        completeVec = filteredById[complete.cases(filteredById),]
+        returnVector = c(returnVector, cor(completeVec$sulfate, completeVec$nitrate))
     }
 
     returnVector

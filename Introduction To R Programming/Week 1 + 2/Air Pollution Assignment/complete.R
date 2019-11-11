@@ -20,7 +20,7 @@ complete <- function(directory, id = 1:332) {
     dat_csv = ldply(filesList, read_csv)
     
     ## Filter the data frame to only the sensor IDs we are interested in.
-    filteredById = subset.data.frame(dat_csv, ID %in% id)
+    filteredById = subset.data.frame(dat_csv, dat_csv$ID %in% id)
     
     # Filter the data to only the complete cases in the data frame.
     completeVec = filteredById[complete.cases(filteredById),]
@@ -31,7 +31,7 @@ complete <- function(directory, id = 1:332) {
     # Iterate over each ID number, and add number of observations to data frame
     index = 1
     for(sensorId in id) {
-        tempFrame = filter(completeVec, ID == sensorId)
+        tempFrame = completeVec[completeVec$ID == sensorId,] #filter(completeVec, completeVec$ID == sensorId)
         returnFrame[[index, 2]] = nrow(tempFrame)
         index = index + 1
     }
